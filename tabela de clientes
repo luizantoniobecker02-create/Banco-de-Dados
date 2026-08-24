@@ -54,3 +54,59 @@ CREATE TABLE Produtos (
 	CONSTRAINT CK_Produtos_Precos CHECK (PrecoVenda >= 0 AND CustoPadrao >= 0)
 );
 
+CREATE TABLE Produtos (
+	ProdutoId INT IDENTITY(1,1) NOT NULL,
+	SKU VARCHAR(40) NOT NULL,
+	Nome NVARCHAR(200) NOT NULL,
+	Unidade VARCHAR(10) NOT NULL DEFAULT 'UN',
+	PrecoVenda DECIMAL (18, 2) NOT NULL DEFAULT 0,
+	CustoPadrao DECIMAL (18, 2) NOT NULL DEFAULT 0,
+	Ativo BIT NOT NULL DEFAULT 1,
+	CriadoEm DATETIME2(0) NOT NULL DEFAULT sysutcdatetime(),
+	AtualizadoEm DATETIME2(0) NOT NULL DEFAULT sysutcdatetime(),
+
+	--Restrições de integridades
+	CONSTRAINT PK_Produtos PRIMARY KEY (ProdutoId),
+	CONSTRAINT UQ_Produtos_SKU UNIQUE (SKU),
+	CONSTRAINT CK_Produtos_Precos CHECK (PrecoVenda >= 0 AND CustoPadrao >= 0)
+);
+
+CREATE TABLE dbo.Armazens (
+    ArmazemId INT IDENTITY(1,1) NOT NULL,
+    Codigo VARCHAR(20) NOT NULL,
+    Nome NVARCHAR(120) NOT NULL,
+    Ativo BIT NOT NULL,
+    CriadoEm DATETIME2(0) NOT NULL,
+    AtualizadoEm DATETIME2(0) NOT NULL,
+    
+    CONSTRAINT PK_Armazens PRIMARY KEY CLUSTERED (ArmazemId)
+);
+
+CREATE TABLE dbo.Estoques (
+    EstoqueId INT NOT NULL,
+    ProdutoId INT NOT NULL,
+    ArmazemId INT NOT NULL,
+    Quantidade DECIMAL(18,3) NOT NULL,
+    QuantidadeMin DECIMAL(18,3) NOT NULL,
+    AtualizadoEm DATETIME2(0) NOT NULL,
+    
+    -- Definição da Chave Primária
+    CONSTRAINT PK_Estoques PRIMARY KEY (EstoqueId)
+);
+
+CREATE TABLE dbo.PedidosVenda (
+    PedidoVendaId INT NOT NULL,
+    Numero VARCHAR(30) NOT NULL,
+    ClienteId INT NOT NULL,
+    Status VARCHAR(12) NOT NULL,
+    DataPedido DATE NOT NULL,
+    TotalProdutos DECIMAL(18, 2) NOT NULL,
+    TotalPedido AS (TotalProdutos), 
+    CriadoEm DATETIME2(0) NOT NULL,
+    AtualizadoEm DATETIME2(0) NOT NULL,
+
+    CONSTRAINT PK_PedidosVenda PRIMARY KEY (PedidoVendaId),
+    CONSTRAINT FK_PedidosVenda_Clientes FOREIGN KEY (ClienteId) REFERENCES dbo.Clientes(ClienteId)
+);
+
+
