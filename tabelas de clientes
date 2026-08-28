@@ -1,5 +1,5 @@
 CREATE DATABASE ERP_Treino;
-
+DROP TABLE dbo.Estoques
 USE ERP_Treino;
 
 CREATE TABLE Clientes (
@@ -79,19 +79,24 @@ CREATE TABLE dbo.Armazens (
     CriadoEm DATETIME2(0) NOT NULL,
     AtualizadoEm DATETIME2(0) NOT NULL,
     
-    CONSTRAINT PK_Armazens PRIMARY KEY CLUSTERED (ArmazemId)
+    CONSTRAINT PK_Armazens PRIMARY KEY CLUSTERED (ArmazemId),
+	CONSTRAINT UQ_Armazens_Codigo UNIQUE (Codigo)
 );
 
 CREATE TABLE dbo.Estoques (
-    EstoqueId INT NOT NULL,
+    EstoqueId INT IDENTITY (1,1) NOT NULL,
     ProdutoId INT NOT NULL,
     ArmazemId INT NOT NULL,
-    Quantidade DECIMAL(18,3) NOT NULL,
-    QuantidadeMin DECIMAL(18,3) NOT NULL,
-    AtualizadoEm DATETIME2(0) NOT NULL,
+    Quantidade DECIMAL(18,3) NOT NULL DEFAULT 0,
+    QuantidadeMin DECIMAL(18,3) NOT NULL DEFAULT 0,
+    AtualizadoEm DATETIME2(0) NOT NULL DEFAULT sysutcdatetime(),
     
     -- Definição da Chave Primária
-    CONSTRAINT PK_Estoques PRIMARY KEY (EstoqueId)
+    CONSTRAINT PK_Estoques PRIMARY KEY (EstoqueId),
+	CONSTRAINT UQ_Estoques_Produto_Armazem UNIQUE (ProdutoId,ArmazemId),
+	CONSTRAINT FK_Estoques_Armazens FOREIGN KEY (ArmazemId) REFERENCES Armazens (ArmazemId),
+	CONSTRAINT FK_Estoques_Produtos FOREIGN KEY (ProdutoId) REFERENCES Produtos (ProdutoId),
+	CONSTRAINT CK_Estoques_QTD CHECK (Quantidade >=0 AND QuantidadeMin >=0)
 );
 
 CREATE TABLE dbo.PedidosVenda (
@@ -106,7 +111,12 @@ CREATE TABLE dbo.PedidosVenda (
     AtualizadoEm DATETIME2(0) NOT NULL,
 
     CONSTRAINT PK_PedidosVenda PRIMARY KEY (PedidoVendaId),
-    CONSTRAINT FK_PedidosVenda_Clientes FOREIGN KEY (ClienteId) REFERENCES dbo.Clientes(ClienteId)
+    CONSTRAINT UQ_PedidosVenda_Numero UNIQUE (Numero),
+	CONSTRAINT FK_PV_Clientes FOREIGN KEY (ClienteId) REFERENCES Clientes (ClienteId),
+	CONSTRAINT CK_PV_Status CHECK (Status IN ('CANCELADO','FATURADO','ABERTO')),
+	CONSTRAINT CK_PV_Total CHECK (TotalProdutos >=0)
 );
+
+
 
 
